@@ -21,6 +21,7 @@ using System.Diagnostics;
 using Surging.Core.CPlatform.Diagnostics;
 using Surging.Core.CPlatform.Exceptions;
 using Surging.Core.CPlatform.Transport.Implementation;
+using Surging.Core.KestrelHttpServer.Internal;
 
 namespace Surging.Core.KestrelHttpServer
 {
@@ -36,6 +37,7 @@ namespace Surging.Core.KestrelHttpServer
         private readonly IServiceProxyProvider _serviceProxyProvider;
         private readonly ConcurrentDictionary<string, ValueTuple<FastInvokeHandler, object, MethodInfo>> _concurrent =
         new ConcurrentDictionary<string, ValueTuple<FastInvokeHandler, object, MethodInfo>>();
+        private readonly DiagnosticListener _diagnosticListener;
         #endregion Field
 
         #region Constructor
@@ -51,6 +53,7 @@ namespace Surging.Core.KestrelHttpServer
             _serviceRouteProvider = serviceRouteProvider;
             _authorizationFilter = authorizationFilter;
             _serviceProxyProvider = serviceProxyProvider;
+            _diagnosticListener = new DiagnosticListener(DiagnosticListenerExtensions.DiagnosticListenerName);
         }
         #endregion Constructor
 
@@ -195,9 +198,8 @@ namespace Surging.Core.KestrelHttpServer
             if (!AppConfig.ServerOptions.DisableDiagnostic)
             {
                 RpcContext.GetContext().SetAttachment("TraceId", message.Id);
-                var diagnosticListener = new DiagnosticListener(DiagnosticListenerExtensions.DiagnosticListenerName);
                 var remoteInvokeMessage = message.GetContent<HttpMessage>();
-                diagnosticListener.WriteTransportBefore(TransportType.Rest, new TransportEventData(new DiagnosticMessage
+                _diagnosticListener.WriteTransportBefore(TransportType.Rest, new TransportEventData(new DiagnosticMessage
                 {
                     Content = message.Content,
                     ContentType = message.ContentType,
@@ -205,12 +207,11 @@ namespace Surging.Core.KestrelHttpServer
                     MessageName = remoteInvokeMessage.RoutePath
                 }, TransportType.Rest.ToString(),
                message.Id,
-                RpcContext.GetContext().GetAttachment("RemoteIpAddress")?.ToString()));
+                RestContext.GetContext().GetAttachment("RemoteIpAddress")?.ToString()));
             }
             else
             {
-                var parameters = RpcContext.GetContext().GetContextParameters();
-                parameters.TryRemove("RemoteIpAddress", out object value);
+                var parameters = RpcContext.GetContext().GetContextParameters(); 
                 RpcContext.GetContext().SetContextParameters(parameters);
             }
 

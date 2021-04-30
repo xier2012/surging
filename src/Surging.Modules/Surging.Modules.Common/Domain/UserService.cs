@@ -9,6 +9,7 @@ using Surging.Core.CPlatform.Utilities;
 using Surging.Core.KestrelHttpServer;
 using Surging.Core.KestrelHttpServer.Internal;
 using Surging.Core.ProxyGenerator;
+using Surging.Core.Thrift.Attributes;
 using Surging.IModuleServices.Common;
 using Surging.IModuleServices.Common.Models;
 using Surging.IModuleServices.User;
@@ -17,10 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using static ThriftCore.Calculator;
 
 namespace Surging.Modules.Common.Domain
 {
-    [ModuleName("User")]
+    [ModuleName("User")]  
     public class UserService : ProxyServiceBase, IUserService
     {
         #region Implementation of IUserService
@@ -121,9 +123,9 @@ namespace Surging.Modules.Common.Domain
             return Task.FromResult(new ApiResult<UserModel>() { Value = new UserModel { Name = "fanly" }, StatusCode = 200 });
         }
 
-        public async Task<bool> UploadFile(HttpFormCollection form)
+        public async Task<bool> UploadFile(HttpFormCollection form1)
         {
-            var files = form.Files;
+            var files = form1.Files;
             foreach (var file in files)
             {
                 using (var stream = new FileStream(Path.Combine(AppContext.BaseDirectory, file.FileName), FileMode.OpenOrCreate))
@@ -166,6 +168,11 @@ namespace Surging.Modules.Common.Domain
         public async Task<Sex> SetSex(Sex sex)
         {
             return await Task.FromResult(sex);
+        }
+
+        public Task<bool> RemoveUser(UserModel user)
+        {
+            return Task.FromResult(true);
         }
         #endregion Implementation of IUserService
     }

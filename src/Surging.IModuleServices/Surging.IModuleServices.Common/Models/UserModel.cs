@@ -14,10 +14,12 @@ namespace Surging.IModuleServices.Common.Models
         public int UserId { get; set; }
 
         [ProtoMember(2)]
+        [CacheKey(2)]
         public string Name { get; set; }
 
         [ProtoMember(3)]
         [Range(0, 150, ErrorMessage = "年龄只能在0到150岁之间")]
+        [CacheKey(3)]
         public int Age { get; set; }
 
         [ProtoMember(4)]
